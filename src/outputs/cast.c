@@ -1086,6 +1086,8 @@ cast_listen_cb(int fd, short what, void *arg)
   struct cast_session *cs;
   uint8_t buffer[MAX_BUF + 1]; // Not sure about the +1, but is copied from gnutls examples
   int received;
+  int header_received;
+  int offset;
   int ret;
 
   cs = (struct cast_session *)arg;
@@ -1103,6 +1105,7 @@ cast_listen_cb(int fd, short what, void *arg)
 #endif
 
   received = 0;
+  header_received = 0;
   while ((ret = gnutls_record_recv(cs->tls_session, buffer + received, MAX_BUF - received)) > 0)
     {
 #ifdef DEBUG_CONNECTION
@@ -1111,6 +1114,7 @@ cast_listen_cb(int fd, short what, void *arg)
 
       if (ret == 4)
 	{
+	  header_received = 1;
 #ifdef DEBUG_CONNECTION
 	  uint32_t be;
 	  size_t len;
@@ -1143,8 +1147,11 @@ cast_listen_cb(int fd, short what, void *arg)
       return;
     }
 
+  if (!header_received)
+    offset = 4;
+
   if (received)
-    cast_msg_process(cs, buffer, received);
+    cast_msg_process(cs, buffer + offset, received - offset);
 }
 
 static void
