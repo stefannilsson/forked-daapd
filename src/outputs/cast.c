@@ -82,7 +82,7 @@
 
 #define CALLBACK_REGISTER_SIZE 32
 
-//#define DEBUG_CONNECTION 1
+#define DEBUG_CONNECTION 1
 
 union sockaddr_all
 {
